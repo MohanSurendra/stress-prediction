@@ -130,51 +130,38 @@ export default function Result() {
   };
 
   useEffect(() => {
+  const stressLevel = searchParams?.get("stress_level");
+  const probability = searchParams?.get("probability");
+
+  if (!stressLevel) {
+    setFetchError("Missing stress level from query parameters.");
+    setStressType("episodic");
+    setLoading(false);
+    return;
+  }
+
+  const prediction = parseInt(stressLevel);
+  if (isNaN(prediction) || !(prediction in predictionMap)) {
+    setFetchError("Invalid prediction value.");
+    setStressType("episodic");
+    setLoading(false);
+    return;
+  }
+
+  setStressType(predictionMap[prediction]);
+
+  if (probability) {
     try {
-      setLoading(true);
-
-      const stressLevel = searchParams.get("stress_level");
-      const probability = searchParams.get("probability");
-
-      console.log("Query Parameters:", {
-        stress_level: stressLevel,
-        probability,
-      });
-
-      if (!stressLevel) {
-        throw new Error("Stress level not provided in query parameters");
-      }
-
-      const prediction = parseInt(stressLevel);
-      if (isNaN(prediction) || !(prediction in predictionMap)) {
-        console.warn("Invalid prediction value:", stressLevel);
-        setFetchError(`Invalid stress level: ${stressLevel}`);
-        setStressType("episodic"); // Fallback
-        return;
-      }
-
-      const predictedType = predictionMap[prediction];
-      setStressType(predictedType);
-
-      if (probability) {
-        try {
-          const parsedProbability = JSON.parse(decodeURIComponent(probability));
-          console.log("Parsed Probability:", parsedProbability);
-          // Optionally store or use probability if needed in UI
-        } catch (err) {
-          console.warn("Failed to parse probability:", err);
-        }
-      }
-    } catch (error) {
-      console.error("Error processing query parameters:", error);
-      setFetchError(
-        `Error: ${error instanceof Error ? error.message : "Unknown error"}`
-      );
-      setStressType("episodic"); // Fallback
-    } finally {
-      setLoading(false);
+      const parsed = JSON.parse(decodeURIComponent(probability));
+      console.log("Parsed probability:", parsed);
+    } catch {
+      console.warn("Failed to parse probability");
     }
-  }, [searchParams]);
+  }
+
+  setLoading(false);
+}, [searchParams]);
+
 
   const stressInfo = stressTypes[stressType];
 
