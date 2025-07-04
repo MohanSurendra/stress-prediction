@@ -1,9 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export', // if you're using `next export`
+  output: 'standalone',
   images: {
-    unoptimized: true, // <-- disable automatic image optimization
+    unoptimized: true, // Required for static export on Render
   },
 };
 
-export default nextConfig;
+module.exports = nextConfig;
