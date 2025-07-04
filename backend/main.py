@@ -168,6 +168,10 @@ async def health_check():
         return {"status": "warning", "message": "Model or scaler not loaded"}
     return {"status": "ok", "model_loaded": True, "scaler_loaded": True}
 
+@app.get("/")
+def read_root():
+    return {"message": "Backend is running successfully 🎉"}
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
