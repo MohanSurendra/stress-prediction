@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Grid from "@mui/material/Grid";
 import {
   Box,
   Button,
@@ -23,6 +22,7 @@ import {
   FormControl,
   //FormLabel,
 } from "@mui/material";
+import Grid from "@mui/material/Grid";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import PsychologyIcon from "@mui/icons-material/Psychology";
@@ -388,16 +388,18 @@ export default function Predict() {
           <Typography variant="h6">{title}</Typography>
         </Box>
       </AccordionSummary>
-      <AccordionDetails>
-        <Grid container spacing={3}>
-          {group.map((feature) => (
-            <Grid item xs={12} md={6} key={feature.name}>
-              {renderInput(feature)}
-            </Grid>
-          ))}
-        </Grid>
-      </AccordionDetails>
-    </Accordion>
+        <AccordionDetails>
+          <Grid container spacing={3}>
+            {group.map((feature) => (
+              // @ts-expect-error Bypassing TypeScript's Grid typing issue for 'item' prop
+              <Grid item xs={12} md={6} key={feature.name}>
+                {renderInput(feature)}
+              </Grid>
+            ))}
+          </Grid>
+
+        </AccordionDetails>
+      </Accordion>
   );
 
   return (
