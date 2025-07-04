@@ -117,12 +117,17 @@ export default function ResultPage() {
           console.warn("Failed to parse probability:", err);
         }
       }
-    } catch (err: any) {
-      setFetchError(err.message || "Error occurred");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setFetchError(err.message);
+      } else {
+        setFetchError("An unexpected error occurred");
+      }
     } finally {
       setLoading(false);
     }
   }, [searchParams]);
+
 
   const stressInfo = stressTypes[stressType];
 
