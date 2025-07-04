@@ -1,7 +1,4 @@
 "use client";
-export const dynamic = 'force-dynamic';
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -22,166 +19,119 @@ import {
 import Link from "next/link";
 import { FaRegLightbulb } from "react-icons/fa";
 
-interface StressTypeInfo {
-  label: string;
-  description: string;
-  recommendations: string[];
-  color: string;
-}
+// Theme setup
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: "#592E83",
+      light: "#9984D4",
+      dark: "#230C33",
+    },
+    secondary: {
+      main: "#CAA8F5",
+    },
+    background: {
+      default: "#f8f9fa",
+      paper: "#ffffff",
+    },
+    text: {
+      primary: "#230C33",
+      secondary: "#592E83",
+    },
+  },
+  typography: {
+    fontFamily: "'Inter', 'Roboto', 'Helvetica', 'Arial', sans-serif",
+    h4: { fontWeight: 700 },
+    h6: { fontWeight: 600 },
+    subtitle1: { fontWeight: 500 },
+  },
+});
 
-export default function Result() {
+// Stress types info
+const stressTypes = {
+  acute: {
+    label: "Acute Stress",
+    description: "Short-term stress from specific events or situations.",
+    recommendations: [
+      "Practice deep breathing exercises.",
+      "Take short walks regularly.",
+      "Break tasks into manageable steps.",
+    ],
+    color: "#22c55e",
+  },
+  episodic: {
+    label: "Episodic Stress",
+    description: "Frequent stress from recurring challenges or pressures.",
+    recommendations: [
+      "Set a consistent daily routine.",
+      "Try mindfulness or journaling.",
+      "Seek support from friends or a counselor.",
+    ],
+    color: "#f97316",
+  },
+  chronic: {
+    label: "Chronic Stress",
+    description: "Ongoing, long-term stress from life circumstances.",
+    recommendations: [
+      "Talk to a mental health professional.",
+      "Improve sleep habits and routine.",
+      "Incorporate yoga or relaxation into daily life.",
+    ],
+    color: "#ef4444",
+  },
+};
+
+const predictionMap = {
+  0: "acute",
+  1: "episodic",
+  2: "chronic",
+};
+
+export default function ResultPage() {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
-  const [stressType, setStressType] = useState<string>("episodic");
+  const [stressType, setStressType] = useState<keyof typeof stressTypes>("episodic");
   const [fetchError, setFetchError] = useState<string | null>(null);
 
-  const theme = createTheme({
-    palette: {
-      primary: {
-        main: "#592E83",
-        light: "#9984D4",
-        dark: "#230C33",
-      },
-      secondary: {
-        main: "#CAA8F5",
-      },
-      background: {
-        default: "#f8f9fa",
-        paper: "#ffffff",
-      },
-      text: {
-        primary: "#230C33",
-        secondary: "#592E83",
-      },
-    },
-    typography: {
-      fontFamily: "'Inter', 'Roboto', 'Helvetica', 'Arial', sans-serif",
-      h4: { fontWeight: 700 },
-      h6: { fontWeight: 600 },
-      subtitle1: { fontWeight: 500 },
-    },
-    components: {
-      MuiPaper: {
-        styleOverrides: {
-          root: {
-            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
-            borderRadius: 16,
-          },
-        },
-      },
-      MuiButton: {
-        styleOverrides: {
-          root: {
-            borderRadius: 8,
-            textTransform: "none",
-            fontWeight: 600,
-            padding: "10px 24px",
-          },
-        },
-      },
-      MuiChip: {
-        styleOverrides: {
-          root: {
-            fontWeight: 600,
-            borderRadius: 8,
-          },
-        },
-      },
-    },
-  });
-
-  const stressTypes: Record<string, StressTypeInfo> = {
-    acute: {
-      label: "Acute Stress",
-      description: "Short-term stress from specific events or situations.",
-      recommendations: [
-        "Practice deep breathing exercises to calm your mind.",
-        "Engage in light physical activity like a short walk.",
-        "Break tasks into smaller, manageable steps.",
-      ],
-      color: "#22c55e",
-    },
-    episodic: {
-      label: "Episodic Stress",
-      description: "Frequent stress from recurring challenges or pressures.",
-      recommendations: [
-        "Establish a consistent daily routine to reduce chaos.",
-        "Practice mindfulness or meditation for 10 minutes daily.",
-        "Seek support from friends or a counselor to manage triggers.",
-      ],
-      color: "#f97316",
-    },
-    chronic: {
-      label: "Chronic Stress",
-      description: "Persistent stress from ongoing life circumstances.",
-      recommendations: [
-        "Consult a mental health professional for personalized strategies.",
-        "Prioritize quality sleep with a regular bedtime routine.",
-        "Incorporate stress-relief activities like yoga or journaling.",
-      ],
-      color: "#ef4444",
-    },
-  };
-
-  const predictionMap: Record<number, string> = {
-    0: "acute",
-    1: "episodic",
-    2: "chronic",
-  };
-
   useEffect(() => {
-  const stressLevel = searchParams?.get("stress_level");
-  const probability = searchParams?.get("probability");
-
-  if (!stressLevel) {
-    setFetchError("Missing stress level from query parameters.");
-    setStressType("episodic");
-    setLoading(false);
-    return;
-  }
-
-  const prediction = parseInt(stressLevel);
-  if (isNaN(prediction) || !(prediction in predictionMap)) {
-    setFetchError("Invalid prediction value.");
-    setStressType("episodic");
-    setLoading(false);
-    return;
-  }
-
-  setStressType(predictionMap[prediction]);
-
-  if (probability) {
     try {
-      const parsed = JSON.parse(decodeURIComponent(probability));
-      console.log("Parsed probability:", parsed);
-    } catch {
-      console.warn("Failed to parse probability");
+      setLoading(true);
+      const level = searchParams.get("stress_level");
+      const probability = searchParams.get("probability");
+
+      if (!level) throw new Error("Missing stress_level");
+
+      const prediction = parseInt(level);
+      if (isNaN(prediction) || !(prediction in predictionMap)) {
+        setFetchError(`Invalid stress level: ${level}`);
+        return;
+      }
+
+      setStressType(predictionMap[prediction] as keyof typeof stressTypes);
+
+      if (probability) {
+        try {
+          const parsed = JSON.parse(decodeURIComponent(probability));
+          console.log("Probability:", parsed);
+        } catch (err) {
+          console.warn("Failed to parse probability:", err);
+        }
+      }
+    } catch (err: any) {
+      setFetchError(err.message || "Error occurred");
+    } finally {
+      setLoading(false);
     }
-  }
-
-  setLoading(false);
-}, [searchParams]);
-
+  }, [searchParams]);
 
   const stressInfo = stressTypes[stressType];
 
   if (loading) {
     return (
       <ThemeProvider theme={theme}>
-        <Container
-          maxWidth="md"
-          sx={{
-            py: 12,
-            textAlign: "center",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-          }}
-        >
-          <CircularProgress color="primary" size={40} />
-          <Typography variant="body1" sx={{ mt: 3 }}>
-            Loading your stress analysis...
-          </Typography>
+        <Container sx={{ py: 10, textAlign: "center" }}>
+          <CircularProgress color="primary" />
+          <Typography sx={{ mt: 3 }}>Loading your stress results...</Typography>
         </Container>
       </ThemeProvider>
     );
@@ -191,50 +141,35 @@ export default function Result() {
     <ThemeProvider theme={theme}>
       <Container maxWidth="lg" sx={{ py: 5 }}>
         <Paper elevation={0} sx={{ p: { xs: 3, md: 5 }, mb: 4 }}>
-          <Typography
-            variant="h4"
-            align="center"
-            sx={{ mb: 4, color: theme.palette.primary.dark }}
-          >
+          <Typography variant="h4" align="center" sx={{ mb: 4, color: theme.palette.primary.dark }}>
             Your Stress Analysis Results
           </Typography>
 
           {fetchError && (
-            <Box
-              sx={{
-                p: 2,
-                mb: 4,
-                bgcolor: alpha("#f87171", 0.1),
-                borderRadius: 2,
-                borderLeft: `4px solid #f87171`,
-              }}
-            >
-              <Typography color="error.main" variant="body2">
-                Debug info: {fetchError}
-              </Typography>
+            <Box sx={{
+              p: 2,
+              mb: 4,
+              bgcolor: alpha("#f87171", 0.1),
+              borderLeft: `4px solid #f87171`,
+              borderRadius: 2,
+            }}>
+              <Typography color="error.main">Error: {fetchError}</Typography>
             </Box>
           )}
 
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: { xs: "column", md: "row" },
-              gap: 4,
-              mb: 6,
-            }}
-          >
-            <Paper
-              elevation={0}
-              sx={{
-                flex: 1,
-                p: 3,
-                border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
-                background: alpha(theme.palette.primary.light, 0.05),
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-              }}
-            >
+          <Box sx={{
+            display: "flex",
+            flexDirection: { xs: "column", md: "row" },
+            gap: 4,
+            mb: 6,
+          }}>
+            <Paper sx={{
+              flex: 1,
+              p: 3,
+              border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+              background: alpha(theme.palette.primary.light, 0.05),
+              textAlign: "center",
+            }}>
               <Typography variant="h6" sx={{ mb: 2 }}>
                 Your Stress Type
               </Typography>
@@ -249,47 +184,31 @@ export default function Result() {
                   px: 2,
                 }}
               />
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ mt: 2, textAlign: "center", maxWidth: 300 }}
-              >
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
                 {stressInfo.description}
               </Typography>
             </Paper>
 
-            <Paper
-              elevation={0}
-              sx={{
-                flex: 1.2,
-                p: 3,
-                border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
-                background: alpha(theme.palette.primary.light, 0.05),
-              }}
-            >
+            <Paper sx={{
+              flex: 1.2,
+              p: 3,
+              border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+              background: alpha(theme.palette.primary.light, 0.05),
+            }}>
               <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
                 <FaRegLightbulb size={20} color={theme.palette.primary.main} />
                 <Typography variant="h6" sx={{ ml: 1 }}>
-                  Personalized Recommendations
+                  Recommendations
                 </Typography>
               </Box>
               <Divider sx={{ mb: 2 }} />
               <Stack spacing={1.5}>
-                {stressInfo.recommendations.map((rec, index) => (
-                  <Box
-                    key={index}
-                    sx={{ display: "flex", alignItems: "flex-start" }}
-                  >
-                    <Box
-                      sx={{
-                        width: 6,
-                        height: 6,
-                        borderRadius: "50%",
-                        bgcolor: theme.palette.primary.main,
-                        mt: 1,
-                        mr: 1.5,
-                      }}
-                    />
+                {stressInfo.recommendations.map((rec, idx) => (
+                  <Box key={idx} sx={{ display: "flex", alignItems: "flex-start" }}>
+                    <Box sx={{
+                      width: 6, height: 6, borderRadius: "50%",
+                      bgcolor: theme.palette.primary.main, mt: 1, mr: 1.5
+                    }} />
                     <Typography variant="body1">{rec}</Typography>
                   </Box>
                 ))}
@@ -297,73 +216,36 @@ export default function Result() {
             </Paper>
           </Box>
 
-          <Paper
-            elevation={0}
-            sx={{
-              p: 3,
-              mb: 4,
-              border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
-              background: alpha(theme.palette.primary.light, 0.05),
-            }}
-          >
-            <Typography
-              variant="h6"
-              sx={{ mb: 2, color: theme.palette.primary.dark }}
-            >
-              Understanding Stress Types
+          <Paper sx={{
+            p: 3, mb: 4,
+            border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+            background: alpha(theme.palette.primary.light, 0.05),
+          }}>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              About Stress Types
             </Typography>
             <Divider sx={{ mb: 2 }} />
             <Stack spacing={2}>
               {Object.values(stressTypes).map((type) => (
-                <Box
-                  key={type.label}
-                  sx={{ display: "flex", alignItems: "flex-start" }}
-                >
+                <Box key={type.label} sx={{ display: "flex", alignItems: "flex-start" }}>
                   <Chip
                     label={type.label}
-                    sx={{
-                      bgcolor: type.color,
-                      color: "white",
-                      mr: 2,
-                      minWidth: 140,
-                    }}
+                    sx={{ bgcolor: type.color, color: "white", mr: 2, minWidth: 130 }}
                   />
-                  <Typography variant="body1">{type.description}</Typography>
+                  <Typography>{type.description}</Typography>
                 </Box>
               ))}
             </Stack>
           </Paper>
 
           <Box sx={{ display: "flex", justifyContent: "center", gap: 2 }}>
-            <Link href="/predict" passHref style={{ textDecoration: "none" }}>
-              <Button
-                variant="contained"
-                size="large"
-                sx={{
-                  px: 4,
-                  bgcolor: theme.palette.primary.main,
-                  "&:hover": {
-                    bgcolor: theme.palette.primary.dark,
-                  },
-                }}
-              >
+            <Link href="/predict" passHref>
+              <Button variant="contained" size="large">
                 Analyze Again
               </Button>
             </Link>
-            <Link href="/" passHref style={{ textDecoration: "none" }}>
-              <Button
-                variant="outlined"
-                size="large"
-                sx={{
-                  px: 4,
-                  borderColor: theme.palette.primary.main,
-                  color: theme.palette.primary.main,
-                  "&:hover": {
-                    borderColor: theme.palette.primary.dark,
-                    bgcolor: alpha(theme.palette.primary.main, 0.05),
-                  },
-                }}
-              >
+            <Link href="/" passHref>
+              <Button variant="outlined" size="large">
                 Home
               </Button>
             </Link>
