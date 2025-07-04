@@ -81,10 +81,10 @@ const stressTypes = {
   },
 };
 
-const predictionMap = {
-  0: "acute",
-  1: "episodic",
-  2: "chronic",
+const predictionMap: { [key: string]: keyof typeof stressTypes } = {
+  "0": "acute",
+  "1": "episodic",
+  "2": "chronic",
 };
 
 export default function ResultPage() {
@@ -107,7 +107,7 @@ export default function ResultPage() {
         return;
       }
 
-      setStressType(predictionMap[prediction] as keyof typeof stressTypes);
+      setStressType(predictionMap[String(prediction)]);
 
       if (probability) {
         try {
