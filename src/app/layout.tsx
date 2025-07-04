@@ -2,7 +2,7 @@
 "use client";
 
 import { CssBaseline, ThemeProvider, createTheme } from "@mui/material";
-import "./globals.css";
+import './globals.css';
 import Navbar from "./components/navbar";
 
 // Create a custom theme with your color palette
