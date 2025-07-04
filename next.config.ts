@@ -1,9 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
+  reactStrictMode: true,
   images: {
-    unoptimized: true, // Required for static export on Render
+    unoptimized: true, // optional: if you get image optimization errors
   },
+  // ❌ Do NOT use `output: 'export'` here
 };
 
-module.exports = nextConfig;
+export default nextConfig;
